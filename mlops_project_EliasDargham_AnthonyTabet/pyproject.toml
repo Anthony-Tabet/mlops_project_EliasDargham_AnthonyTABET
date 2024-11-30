@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "mlops-project-eliasdargham-anthonytabet"
+version = "0.1.0"
+description = ""
+authors = ["tabet-anthony <anthony_tabet01@hotmail.com>"]
+readme = "README.md"
+packages = [{include = "mlops_project_eliasdargham_anthonytabet", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
