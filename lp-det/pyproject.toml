@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "lp-det"
+version = "0.1.0"
+description = ""
+authors = ["Elias Dargham <edargham@hotmail.com>"]
+readme = "README.md"
+packages = [{include = "lp_det", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+torch = "^2.5.0"
+torchvision = "^0.20.0"
+ultralytics = "^8.3.39"
+mlflow = "^1.20.2"
+protobuf = "^3.20.0"
+pydantic = "^2.9.2"
+omegaconf = "^2.3.0"
+
+[tool.poetry.scripts]
+lp-det = "lp_det.main:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

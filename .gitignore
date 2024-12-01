@@ -1,0 +1,6 @@
+__pycache__
+lp-det/lp-det
+lpd-data
+mlruns
+runs
+*.pt
