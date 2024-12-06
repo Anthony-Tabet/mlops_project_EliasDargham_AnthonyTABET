@@ -8,13 +8,15 @@ packages = [{include = "lp_det", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
+flask = "^3.1.0"
 torch = "^2.5.0"
 torchvision = "^0.20.0"
-ultralytics = "^8.3.39"
-mlflow = "^1.20.2"
+ultralytics = "^8.3.40"
 protobuf = "^3.20.0"
 pydantic = "^2.9.2"
 omegaconf = "^2.3.0"
+python-dotenv = "^1.0.1"
+mlflow = "^2.18.0"
 
 [tool.poetry.scripts]
 lp-det = "lp_det.main:main"

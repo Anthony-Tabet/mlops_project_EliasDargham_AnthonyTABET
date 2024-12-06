@@ -1,6 +1,10 @@
 __pycache__
+.pytest_cache
 lp-det/lp-det
 lpd-data
 mlruns
 runs
 *.pt
+*.pth
+*.onnx
+*.db

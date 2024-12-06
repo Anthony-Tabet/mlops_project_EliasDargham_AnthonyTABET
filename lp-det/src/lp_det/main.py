@@ -8,8 +8,10 @@ Description: Main file for the training pipeline of the License Plate Detection 
 """
 
 import argparse
+from dotenv import load_dotenv
 
 from ultralytics import YOLO
+import mlflow
 
 from lp_det.config_loader import Config
 
@@ -23,8 +25,13 @@ def run(conf: Config) -> None:
     ### Returns
         None
     """
+    mlflow.set_experiment(conf.project.name)
     # Load the model
     model = YOLO(model=f'{conf.training.model}{conf.training.size}.pt')
+    model.model_name = 'lp-det'
+
+    # Register the model with mlflow
+    mlflow.pytorch.log_model(model, 'model')
 
     # Load the data from the path to train yolo
     model.train(
@@ -40,12 +47,11 @@ def run(conf: Config) -> None:
         momentum=conf.training.lr.gamma,
     )
 
-    #Evaluate the mmodel
+    # Evaluate the mmodel
     model.val(
         data=conf.validation.data.path,
         batch=conf.validation.data.bsz,
         imgsz=conf.validation.data.imgsz,
-        iou_thres=conf.validation.iou_threshold,
         project=conf.project.name,
         device=conf.validation.device
     )
@@ -62,6 +68,7 @@ def main() -> None:
     ### Returns
         None
     """
+    load_dotenv()
     # Parse the arguments
     parser = argparse.ArgumentParser(description='License Plate Detection model training pipeline.')
     parser.add_argument(

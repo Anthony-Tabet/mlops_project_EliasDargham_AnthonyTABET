@@ -151,7 +151,7 @@ class TrainingConfig(BaseModel):
     Configuration model for the training pipeline
     of the License Plate Detection model.
     """
-    model: Literal['yolov8', 'yolov10']
+    model: Literal['yolov8', 'yolov10', 'yolov11']
     size: Literal['n', 's', 'm', 'l', 'x']
     data: DataConfig
     device: Literal['cpu', 'cuda']
@@ -174,7 +174,7 @@ class TrainingConfig(BaseModel):
         """
         if not isinstance(v, str):
             raise ValueError(f'Value "{v}" is not a string.')
-        if v not in ['yolov8', 'yolov10']:
+        if v not in ['yolov8', 'yolov10', 'yolov11']:
             raise ValueError(f'Model "{v}" is not valid.')
         return v
 
@@ -262,7 +262,6 @@ class ValidationConfig(BaseModel):
     data: DataConfig
     device: Literal['cpu', 'cuda']
     workers: int
-    iou_thres: float
 
     @field_validator('device')
     @classmethod
@@ -300,25 +299,6 @@ class ValidationConfig(BaseModel):
             raise ValueError(f'Value "{v}" is not an integer.')
         if v <= 0:
             raise ValueError(f'Number of workers "{v}" is not valid.')
-        return v
-
-    @field_validator('iou_thres')
-    @classmethod
-    def check_iou_threshold(cls, v: float)-> float:
-        """
-        ### Description
-            Check if the IoU threshold is valid.
-        ### Parameters
-            v (float): The IoU threshold to check.
-        ### Returns
-            v (float): The IoU threshold if it is valid.
-        ### Raises
-            ValueError: If the IoU threshold is not valid.
-        """
-        if not isinstance(v, float):
-            raise ValueError(f'Value "{v}" is not a float.')
-        if v < 0 or v > 1:
-            raise ValueError(f'IoU threshold "{v}" is not valid.')
         return v
 
 class ProjectConfiguration(BaseModel):

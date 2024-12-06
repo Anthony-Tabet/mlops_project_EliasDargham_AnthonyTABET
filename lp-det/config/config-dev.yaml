@@ -9,24 +9,23 @@ training:
   # 'm' - medium.
   # 'l' - large.
   # 'x' - extra large.
-  size: 'm'
+  size: 'l'
   data:
     path: '/home/edargham/Sources/ai-devenv/swe-finalproject/swe-lpd/lp-det/lpd-data/data.yaml'
-    bsz: 44
+    bsz: 24
     imgsz: 640
   device: 'cuda'
-  epochs: 300
+  epochs: 1
   workers: 8
   lr:
-    rate: 1e-3
-    optimizer: 'auto'
-    gamma: 0.98
+    rate: 1e-2
+    optimizer: 'adam'
+    gamma: 0.999
 validation:
   data:
     path: '/home/edargham/Sources/ai-devenv/swe-finalproject/swe-lpd/lp-det/lpd-data/data.yaml'
-    bsz: 44
+    bsz: 24
     imgsz: 640
   device: 'cuda'
   workers: 8
-  iou_thres: 0.6
 export_format: 'onnx'
