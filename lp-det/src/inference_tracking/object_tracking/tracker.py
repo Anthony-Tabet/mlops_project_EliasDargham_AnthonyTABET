@@ -1,11 +1,10 @@
 # src/swe/object_tracking/tracker.py
-
-import random
+""""""
 import cv2
 from deep_sort_realtime.deepsort_tracker import DeepSort
-from deep_sort_realtime.overrides import TrackExtended
-from deep_sort_realtime.deep_sort.track import Track
-from src.object_tracker.object_tracking.utils import process_track
+from inference_tracking.realtime_tracking.overrides import TrackExtended
+from inference_tracking.object_tracking.utils import process_track
+
 
 class ObjectTracker:
     def __init__(self, model, forward_url, forward_url_port, out_dir):
@@ -13,7 +12,7 @@ class ObjectTracker:
         self.forward_url = forward_url
         self.forward_url_port = forward_url_port
         self.out_dir = out_dir
-        self.tracker = DeepSort(max_age=5, override_track_class=TrackExtended, on_delete=process_track)
+        self.tracker = DeepSort(max_age=5, override_track_class=TrackExtended)
 
     def update_tracks(self, boxes, frame):
         return self.tracker.update_tracks(boxes, frame=frame)

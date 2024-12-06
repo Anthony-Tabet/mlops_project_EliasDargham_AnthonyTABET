@@ -1,19 +1,20 @@
-# src/swe/object_tracking/main.py
+# src/inference_tracking/infer.py
+"""
+infer.py
+Author: Anthony Tabet (Anthony-Tabet)
+Date: 2024-12-06
+Description: Runs inference and tracking on a video source.
+"""
 
 import argparse
-import os
-import random
-import base64
-import uuid
 import cv2
-import requests
-from deep_sort_realtime.deep_sort.track import Track
-from deep_sort_realtime.deepsort_tracker import DeepSort
-from ultralytics import YOLO
-from src.swe.object_tracking.tracker import ObjectTracker
-from src.swe.object_tracking.utils import process_track
 
-def main(
+from ultralytics import YOLO
+
+from inference_tracking.object_tracking.tracker import ObjectTracker
+from inference_tracking.object_tracking.utils import process_track
+
+def run(
     source: str,
     out_dir: str,
     forward_url: str,
@@ -52,7 +53,7 @@ def main(
     cap.release()
     cv2.destroyAllWindows()
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', type=str, default='./data/Test.mp4', help='source')
     parser.add_argument('--output', type=str, default='./output', help='output')
@@ -61,4 +62,4 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    main(args.source, args.output, args.forward_url, args.port)
+    run(args.source, args.output, args.forward_url, args.port)

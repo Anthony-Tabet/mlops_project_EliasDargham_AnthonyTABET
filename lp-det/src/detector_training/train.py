@@ -13,7 +13,7 @@ from dotenv import load_dotenv
 from ultralytics import YOLO
 import mlflow
 
-from lp_det.config_loader import Config
+from detector_training.config_loader import Config
 
 
 def run(conf: Config) -> None:
