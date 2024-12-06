@@ -1,11 +1,24 @@
 # src/swe/object_tracking/utils.py
+"""
+utils.py
+Author: Anthony Tabet (Anthony-Tabet)
+Date:
+Description:
+"""
 
 import base64
-import cv2
 import os
-import requests
 import uuid
 import textwrap
+import argparse
+import requests
+import cv2
+import numpy as np
+from ultralytics import YOLO
+
+from deep_sort_realtime.deep_sort.track import Track
+from deep_sort_realtime.deepsort_tracker import DeepSort
+
 
 def process_track(track, frame, out_dir, forward_url, forward_url_port, forward_url_path="/"):
     x, y, w, h = track.to_tlwh()
@@ -48,7 +61,7 @@ def process_track(track, frame, out_dir, forward_url, forward_url_port, forward_
                 cv2.imshow('Image', crop)
 
                 caption_path = os.path.join(out_dir, uuid_str, 'caption.txt')
-                with open(caption_path, 'w') as f:
+                with open(caption_path, 'w', encoding='utf8') as f:
                     f.write(caption)
 
                 print(f"Caption saved to {caption_path}")
@@ -58,7 +71,7 @@ def process_track(track, frame, out_dir, forward_url, forward_url_port, forward_
 
         except Exception as e:
             print(f"Failed to send image: {e}")
-            
+
 def run_object_tracking(input_video: str, output_dir: str, forward_url: str, forward_url_port: int) -> None:
     # Initialize the YOLOv5 model
     model = YOLO("yolov5s.pt")  # Make sure the model path is correct for your use case
@@ -95,7 +108,7 @@ def run_object_tracking(input_video: str, output_dir: str, forward_url: str, for
                 detections.append(np.array([box[0], box[1], box[2], box[3], confidence]))
 
         # Update the DeepSort tracker
-        tracks = deepsort.update(detections)
+        tracks = deepsort.update_tracks(detections)
 
         # Process each track
         for track in tracks:

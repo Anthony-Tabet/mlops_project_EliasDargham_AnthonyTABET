@@ -4,7 +4,7 @@ version = "0.1.0"
 description = ""
 authors = ["Elias Dargham <edargham@hotmail.com>"]
 readme = "README.md"
-packages = [{include = "lp_det", from = "src"}]
+packages = [{include = "detector_training", from = "src"}, {include = "inference_tracking", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.12"
@@ -17,9 +17,11 @@ pydantic = "^2.9.2"
 omegaconf = "^2.3.0"
 python-dotenv = "^1.0.1"
 mlflow = "^2.18.0"
+deep-sort-realtime = "^1.3.2"
 
 [tool.poetry.scripts]
-lp-det = "lp_det.main:main"
+lp-det-train = "detector_training.train:main"
+lp-det-infer = "inference_tracking.infer:main"
 
 [build-system]
 requires = ["poetry-core"]
