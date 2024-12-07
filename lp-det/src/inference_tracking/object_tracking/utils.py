@@ -15,16 +15,33 @@ import requests
 import cv2
 import numpy as np
 from ultralytics import YOLO
-
+from loguru import logger
 from deep_sort_realtime.deep_sort.track import Track
 from deep_sort_realtime.deepsort_tracker import DeepSort
 
 
-def process_track(track: Track, frame: cv2.Mat, out_dir: str, forward_url : str, forward_url_port: int, forward_url_path: str="/")-> None:
+logger.add("tracking_process.log", rotation="10 MB")  # Log file setup
+
+def process_track(track: Track, frame: cv2.Mat, out_dir: str, forward_url: str, forward_url_port: int, forward_url_path: str = "/") -> None:
+    """
+    Process each track by cropping from the frame, encoding it, sending it to a server, and saving the response.
+
+    Args:
+        track (Track): The track information containing the bounding box.
+        frame (cv2.Mat): The frame from which to crop the tracked object.
+        out_dir (str): Directory where the outputs are stored.
+        forward_url (str): The URL to forward the cropped image.
+        forward_url_port (int): The port number for the URL.
+        forward_url_path (str): The path at the URL to send the post request.
+
+    Returns:
+        None
+    """
     x, y, w, h = track.to_tlwh()
     if frame is not None and frame.shape[0] != 0 and frame.shape[1] != 0:
-        crop = frame[int(y):int(y+h), int(x):int(x+w)]
+        crop = frame[int(y):int(y + h), int(x):int(x + w)]
         if crop.shape[0] == 0 or crop.shape[1] == 0:
+            logger.warning(f"Empty bounding box for track {track.track_id}. Skipping...")
             return
 
         _, encoded_image = cv2.imencode('.jpg', crop)
@@ -34,6 +51,7 @@ def process_track(track: Track, frame: cv2.Mat, out_dir: str, forward_url : str,
             endpoint_url = f'{forward_url}:{forward_url_port}{forward_url_path}'
             payload = {'image': crop_base64}
             response = requests.post(endpoint_url, json=payload)
+            logger.debug(f"Request sent to {endpoint_url}. Status code: {response.status_code}")
 
             if response.status_code == 200:
                 caption = response.content.decode()
@@ -54,7 +72,7 @@ def process_track(track: Track, frame: cv2.Mat, out_dir: str, forward_url : str,
                 color = (255, 0, 0)
                 (_, line_height), _ = cv2.getTextSize('A', font, font_scale, thickness)
 
-                for _ in wrapped_text:
+                for line in wrapped_text:
                     y += line_height + 10
 
                 crop = cv2.putText(crop, caption, (10, y), font, font_scale, color, thickness, cv2.LINE_AA)
@@ -63,36 +81,50 @@ def process_track(track: Track, frame: cv2.Mat, out_dir: str, forward_url : str,
                 caption_path = os.path.join(out_dir, uuid_str, 'caption.txt')
                 with open(caption_path, 'w', encoding='utf8') as f:
                     f.write(caption)
-
-                print(f"Caption saved to {caption_path}")
+                logger.info(f"Caption saved to {caption_path}")
 
             else:
-                print(f"Invalid frame or empty bounding box for track {track.track_id}")
+                logger.error(f"Received non-200 response: {response.status_code}")
 
         except Exception as e:
-            print(f"Failed to send image: {e}")
+            logger.error(f"Failed to send image: {e}")
+
+    else:
+        logger.warning(f"Invalid frame or empty bounding box for track {track.track_id}")
 
 def run_object_tracking(input_video: str, output_dir: str, forward_url: str, forward_url_port: int) -> None:
+    """
+    Run the object tracking pipeline using YOLOv5 and DeepSort on a video input.
+
+    Args:
+        input_video (str): Path to the input video file.
+        output_dir (str): Directory to save cropped images and captions.
+        forward_url (str): URL to send cropped object images for further processing.
+        forward_url_port (int): Port for the forward URL.
+    """
+    logger.info("Initializing YOLOv5 model.")
     # Initialize the YOLOv5 model
     model = YOLO("yolov5s.pt")  # Make sure the model path is correct for your use case
 
+    logger.info("Initializing DeepSort tracker.")
     # Initialize the DeepSort tracker
     deepsort = DeepSort()
 
     # Open the input video stream
     cap = cv2.VideoCapture(input_video)
-
     if not cap.isOpened():
-        print("Error: Could not open video stream.")
+        logger.error("Could not open video stream.")
         return
 
     frame_id = 0
     while True:
         ret, frame = cap.read()
         if not ret:
+            logger.info("No more frames to read, exiting loop.")
             break
 
         frame_id += 1
+        logger.debug(f"Processing frame {frame_id}.")
 
         # Perform object detection using YOLOv5
         results = model(frame)
@@ -139,12 +171,12 @@ def run_object_tracking(input_video: str, output_dir: str, forward_url: str, for
 
         # Press 'q' to quit the loop
         if cv2.waitKey(1) & 0xFF == ord('q'):
+            logger.info("Exiting tracking loop.")
             break
 
     cap.release()
     cv2.destroyAllWindows()
-    print("Object tracking finished.")
-
+    logger.info("Object tracking finished.")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run object tracking pipeline using YOLOv5 and DeepSORT.")

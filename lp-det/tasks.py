@@ -24,3 +24,8 @@ def test(c):
 def train(c):
     """Run the training pipeline."""
     c.run("poetry run python src/detector_training/train.py --config config/config-dev.yaml")
+
+@task
+def generate_docs(c):
+    """Generate project documentation using pdoc."""
+    c.run("poetry run pdoc --html --output-dir docs src")

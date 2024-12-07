@@ -9,13 +9,16 @@ Description: Main file for the training pipeline of the License Plate Detection 
 
 import argparse
 from dotenv import load_dotenv
-
+from loguru import logger
 import onnx
 import mlflow
 from ultralytics import YOLO
 
 from detector_training.config_loader import Config
 
+
+# Setup Loguru logger
+logger.add("lp_det.log", rotation="10 MB")   # Each log file is limited to 10 MB
 
 def run(conf: Config) -> None:
     """
@@ -26,10 +29,12 @@ def run(conf: Config) -> None:
     ### Returns
         None
     """
+    logger.info(f"Setting up MLflow experiment: {conf.project.name}")
     mlflow.set_experiment(conf.project.name)
     with mlflow.start_run():
         model = YOLO(model=f'{conf.training.model}{conf.training.size}.pt')
         model.model_name = conf.project.name
+        logger.info("Model loaded and configured.")
 
         # Load the data from the path to train yolo
         results = model.train(
@@ -44,6 +49,7 @@ def run(conf: Config) -> None:
             lr0=conf.training.lr.rate,
             momentum=conf.training.lr.gamma
         )
+        logger.info("Model training completed.")
         # session_id = session.info.run_id
         # session_name = session.info.run_name
         # print(f"MLflow session ID: {session_id}")
@@ -56,11 +62,14 @@ def run(conf: Config) -> None:
         # Log the results to mlflow
         mlflow.log_metrics(results)
 
+        logger.info(f"Exporting model in format: {conf.export_format}")
         onnx_model_path = model.export(format=conf.export_format, opset=20)
+        logger.info("Model export completed.")
 
         # Save the model with mlflow
         onnx_model = onnx.load(onnx_model_path)
         mlflow.onnx.log_model(onnx_model, artifact_path="model")
+        logger.info("Model registered in MLflow.")
 
 def main() -> None:
     """
@@ -72,6 +81,8 @@ def main() -> None:
         None
     """
     load_dotenv('.env')
+    logger.info("Environment variables loaded.")
+
     # Parse the arguments
     parser = argparse.ArgumentParser(description='License Plate Detection model training pipeline.')
     parser.add_argument(
@@ -82,8 +93,12 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    logger.info(f"Loading configuration from: {args.config}")
     # Load the configuration
     conf = Config.from_yaml(args.config)
+    logger.info("Configuration loaded successfully.")
 
     # Run the training pipeline
+    logger.info("Starting the training pipeline...")
     run(conf)
+    logger.info("Training pipeline completed.")
