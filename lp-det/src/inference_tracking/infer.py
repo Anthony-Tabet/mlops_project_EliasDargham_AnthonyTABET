@@ -10,9 +10,12 @@ import argparse
 import cv2
 
 from ultralytics import YOLO
+from loguru import logger
 
 from inference_tracking.object_tracking.tracker import ObjectTracker
 from inference_tracking.object_tracking.utils import process_track
+
+logger.add("tracking.log", rotation="10 MB")  # Log file setup
 
 def run(
     source: str,
@@ -20,17 +23,29 @@ def run(
     forward_url: str,
     forward_url_port: int
 ) -> None:
+    """
+    Execute the object tracking process on a given video source.
+
+    Args:
+        source (str): Path or URL to the video source.
+        out_dir (str): Directory to save any outputs.
+        forward_url (str): URL to send detected object data for processing.
+        forward_url_port (int): Port number of the forward URL.
+    """
+    logger.debug(f"Attempting to open video source: {source}")
     cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
     if not cap.isOpened():
-        print("Failed to open video source")
+        logger.error("Failed to open video source")
         return
 
+    logger.info("Initializing YOLO model.")
     model = YOLO("yolov10x.pt")
     model.classes = [0, 1, 2, 3, 4, 5, 6, 7, 15, 16, 17]
     tracker = ObjectTracker(model, forward_url, forward_url_port, out_dir)
 
     ret, frame = cap.read()
     while ret:
+        logger.debug("Processing a new frame.")
         results = model(frame)
         boxes = []
         for result in results:
@@ -45,15 +60,19 @@ def run(
                 tracker.draw_tracking(track, frame)
 
         cv2.imshow('Footage', frame)
-
         if cv2.waitKey(1) & 0xFF == ord('q'):
+            logger.info("Quitting the tracking loop.")
             break
         ret, frame = cap.read()
 
     cap.release()
     cv2.destroyAllWindows()
+    logger.info("Tracking process completed.")
 
 def main() -> None:
+    """
+    Parse arguments and run the object tracking process.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', type=str, default='./data/Test.mp4', help='source')
     parser.add_argument('--output', type=str, default='./output', help='output')
@@ -61,5 +80,6 @@ def main() -> None:
     parser.add_argument('--port', type=int, default=8080)
 
     args = parser.parse_args()
+    logger.info(f"Running tracking with source: {args.source}")
 
     run(args.source, args.output, args.forward_url, args.port)
