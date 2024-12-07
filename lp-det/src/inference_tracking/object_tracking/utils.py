@@ -20,7 +20,7 @@ from deep_sort_realtime.deep_sort.track import Track
 from deep_sort_realtime.deepsort_tracker import DeepSort
 
 
-def process_track(track, frame, out_dir, forward_url, forward_url_port, forward_url_path="/"):
+def process_track(track: Track, frame: cv2.Mat, out_dir: str, forward_url : str, forward_url_port: int, forward_url_path: str="/")-> None:
     x, y, w, h = track.to_tlwh()
     if frame is not None and frame.shape[0] != 0 and frame.shape[1] != 0:
         crop = frame[int(y):int(y+h), int(x):int(x+w)]

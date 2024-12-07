@@ -19,7 +19,7 @@ def run(
     out_dir: str,
     forward_url: str,
     forward_url_port: int
-):
+) -> None:
     cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
     if not cap.isOpened():
         print("Failed to open video source")
@@ -53,7 +53,7 @@ def run(
     cap.release()
     cv2.destroyAllWindows()
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', type=str, default='./data/Test.mp4', help='source')
     parser.add_argument('--output', type=str, default='./output', help='output')
