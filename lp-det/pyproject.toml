@@ -23,6 +23,14 @@ deep-sort-realtime = "^1.3.2"
 lp-det-train = "detector_training.train:main"
 lp-det-infer = "inference_tracking.infer:main"
 
+[tool.ruff]
+line-length = 88
+select = ["E", "F", "W", "I", "D", "C90", "B", "S"]  # B: Bandit (security), S: Docstrings
+fixable = ["F", "I"]  # Automatically fix these categories
+
+[tool.ruff.per-file-ignores]
+"__init__.py" = ["F401"]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
