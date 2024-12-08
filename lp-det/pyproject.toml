@@ -36,17 +36,6 @@ fixable = ["F", "I"]  # Automatically fix these categories
 files = ["src"]
 ignore_missing_imports = true
 
-[[tool.poetry.source]]
-name = "pytorch-gpu"
-url = "https://download.pytorch.org/whl/cu124"
-priority = "explicit"
-
-
-[[tool.poetry.source]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-priority = "explicit"
-
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
