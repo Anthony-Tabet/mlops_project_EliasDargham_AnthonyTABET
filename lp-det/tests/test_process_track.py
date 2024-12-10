@@ -7,7 +7,7 @@ my_track = Track()
 def test_process_track():
     
     track = MockTrack()
-    frame = MockFrame()
+    frame = my_frame
     out_dir = "./test_output"
     forward_url = "http://127.0.0.1"
     forward_url_port = 8080
