@@ -28,10 +28,7 @@ def run(conf: Config) -> None:
     mlflow.set_experiment(conf.project.name)
     # Load the model
     model = YOLO(model=f'{conf.training.model}{conf.training.size}.pt')
-    model.model_name = 'lp-det'
-
-    # Register the model with mlflow
-    mlflow.pytorch.log_model(model, 'model')
+    model.model_name = conf.project.name
 
     # Load the data from the path to train yolo
     model.train(
@@ -55,6 +52,9 @@ def run(conf: Config) -> None:
         project=conf.project.name,
         device=conf.validation.device
     )
+
+    # Register the model with mlflow
+    mlflow.pytorch.log_model(model, conf.project.name)
 
     # Export the model
     model.export(format=conf.export_format)

@@ -15,8 +15,8 @@ training:
     bsz: 24
     imgsz: 640
   device: 'cuda'
-  epochs: 1
-  workers: 8
+  epochs: 15
+  workers: 16
   lr:
     rate: 1e-2
     optimizer: 'adam'
