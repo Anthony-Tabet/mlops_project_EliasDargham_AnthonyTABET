@@ -14,6 +14,7 @@ from loguru import logger
 
 from inference_tracking.object_tracking.tracker import ObjectTracker
 from inference_tracking.object_tracking.utils import process_track
+from monitoring import inference_counter, inference_time, processed_frames, active_tracks, errors
 
 logger.add("tracking.log", rotation="10 MB")  # Log file setup
 
@@ -36,34 +37,42 @@ def run(
     cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
     if not cap.isOpened():
         logger.error("Failed to open video source")
+        errors.inc()
         return
 
     logger.info("Initializing YOLO model.")
     model = YOLO("yolov10x.pt")
     model.classes = [0, 1, 2, 3, 4, 5, 6, 7, 15, 16, 17]
     tracker = ObjectTracker(model, forward_url, forward_url_port, out_dir)
-
-    ret, frame = cap.read()
-    while ret:
-        logger.debug("Processing a new frame.")
-        results = model(frame)
-        boxes = []
-        for result in results:
-            for r in result.boxes.data.tolist():
-                x1, y1, x2, y2, score, class_id = r
-                if score > 0.5:
-                    boxes.append([[x1, y1, x2 - x1, y2 - y1], score, class_id])
-
-        tracks = tracker.update_tracks(boxes, frame)
-        for track in tracks:
-            if track.is_confirmed():
-                tracker.draw_tracking(track, frame)
-
-        cv2.imshow('Footage', frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            logger.info("Quitting the tracking loop.")
-            break
+    try:
         ret, frame = cap.read()
+        while ret:
+            with inference_time.time():
+                logger.debug("Processing a new frame.")
+                results = model(frame)
+                inference_counter.inc()
+                boxes = []
+                for result in results:
+                    for r in result.boxes.data.tolist():
+                        x1, y1, x2, y2, score, class_id = r
+                        if score > 0.5:
+                            boxes.append([[x1, y1, x2 - x1, y2 - y1], score, class_id])
+
+                tracks = tracker.update_tracks(boxes, frame)
+                active_tracks.set(len(tracks))
+                for track in tracks:
+                    if track.is_confirmed():
+                        tracker.draw_tracking(track, frame)
+
+                cv2.imshow('Footage', frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    logger.info("Quitting the tracking loop.")
+                    break
+            processed_frames.inc()
+            ret, frame = cap.read()
+    except:
+        logger.error(f"Error processing video: {e}")
+        errors.inc()  # Increment error counter on exceptions
 
     cap.release()
     cv2.destroyAllWindows()
