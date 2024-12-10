@@ -33,12 +33,9 @@ def run(conf: Config) -> None:
 
     # Load the model
     model = YOLO(model=f'{conf.training.model}{conf.training.size}.pt')
-    model.model_name = 'lp-det'
+    
+    model.model_name = conf.project.name
     logger.info("Model loaded and configured.")
-
-    # Register the model with mlflow
-    mlflow.pytorch.log_model(model, 'model')
-    logger.info("Model registered in MLflow.")
 
     # Load the data from the path to train yolo
     logger.info("Starting model training...")
@@ -66,6 +63,9 @@ def run(conf: Config) -> None:
         device=conf.validation.device
     )
     logger.info("Model evaluation completed.")
+
+    # Register the model with mlflow
+    mlflow.pytorch.log_model(model, conf.project.name)
 
     # Export the model
     logger.info(f"Exporting model in format: {conf.export_format}")

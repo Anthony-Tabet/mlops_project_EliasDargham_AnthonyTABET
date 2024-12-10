@@ -1,0 +1,18 @@
+services:
+  # lp-det:
+  #   image: ./dreamteam/lp-det:test
+  #   # command: poetry shell && lp-det-train
+  
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.18.0
+    ports:
+      - 5050:5000
+    environment:
+      MLFLOW_TRACKING_URI: http://127.0.0.1:5000
+    volumes:
+      - ./lp-det/mlruns:/mlflow/artifacts
+    command: >
+      mlflow server
+      --backend-store-uri sqlite:///mlflow.db
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
