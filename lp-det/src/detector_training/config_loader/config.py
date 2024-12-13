@@ -374,4 +374,16 @@ class Config(BaseModel):
         ### Returns
             None
         """
-        OmegaConf.save(self.dict(), path)
+        OmegaConf.save(self.model_dump(), path)
+
+    def to_dict(self) -> dict:
+        """
+        ### Description
+            Convert the configuration to a dictionary.
+        ### Returns
+            config (dict): The configuration dictionary.
+        """
+        config = self.model_dump()
+        if not OmegaConf.is_config(config):
+            config = OmegaConf.create(config)
+        return OmegaConf.to_container(config)
