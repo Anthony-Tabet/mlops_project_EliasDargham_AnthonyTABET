@@ -12,6 +12,8 @@ from dotenv import load_dotenv
 from loguru import logger
 import onnx
 import mlflow
+import onnx
+import mlflow
 from ultralytics import YOLO
 
 from detector_training.config_loader import Config
