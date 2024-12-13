@@ -10,8 +10,9 @@ Description: Main file for the training pipeline of the License Plate Detection 
 import argparse
 from dotenv import load_dotenv
 from loguru import logger
-from ultralytics import YOLO
+import onnx
 import mlflow
+from ultralytics import YOLO
 
 from detector_training.config_loader import Config
 
@@ -31,46 +32,34 @@ def run(conf: Config) -> None:
     logger.info(f"Setting up MLflow experiment: {conf.project.name}")
     mlflow.set_experiment(conf.project.name)
 
-    # Load the model
-    model = YOLO(model=f'{conf.training.model}{conf.training.size}.pt')
-    
-    model.model_name = conf.project.name
-    logger.info("Model loaded and configured.")
+    with mlflow.start_run():
+        model = YOLO(model=f'{conf.training.model}{conf.training.size}.pt')
+        
+        model.model_name = conf.project.name
+        logger.info("Model loaded and configured.")
 
-    # Load the data from the path to train yolo
-    logger.info("Starting model training...")
-    model.train(
-        data=conf.training.data.path,
-        epochs=conf.training.epochs,
-        imgsz=conf.training.data.imgsz,
-        device=conf.training.device,
-        batch=conf.training.data.bsz,
-        workers=conf.training.workers,
-        project=conf.project.name,
-        optimizer=conf.training.lr.optimizer,
-        lr0=conf.training.lr.rate,
-        momentum=conf.training.lr.gamma,
-    )
-    logger.info("Model training completed.")
+        # Load the data from the path to train yolo
+        results = model.train(
+            data=conf.training.data.path,
+            epochs=conf.training.epochs,
+            imgsz=conf.training.data.imgsz,
+            device=conf.training.device,
+            batch=conf.training.data.bsz,
+            workers=conf.training.workers,
+            project=conf.project.name,
+            optimizer=conf.training.lr.optimizer,
+            lr0=conf.training.lr.rate,
+            momentum=conf.training.lr.gamma,
+        )
 
-    # Evaluate the model
-    logger.info("Starting model evaluation...")
-    model.val(
-        data=conf.validation.data.path,
-        batch=conf.validation.data.bsz,
-        imgsz=conf.validation.data.imgsz,
-        project=conf.project.name,
-        device=conf.validation.device
-    )
-    logger.info("Model evaluation completed.")
+        mlflow.log_metrics(results)
 
-    # Register the model with mlflow
-    mlflow.pytorch.log_model(model, conf.project.name)
-
-    # Export the model
-    logger.info(f"Exporting model in format: {conf.export_format}")
-    model.export(format=conf.export_format)
-    logger.info("Model export completed.")
+        # Save the model with mlflow
+        logger.info(f"Exporting model in format: {conf.export_format}")
+        onnx_model_path = model.export(format=conf.export_format, opset=20)
+        onnx_model = onnx.load(onnx_model_path)
+        mlflow.onnx.log_model(onnx_model, artifact_path="model")
+        logger.info("Model export completed.")
 
 def main() -> None:
     """
@@ -81,7 +70,7 @@ def main() -> None:
     ### Returns
         None
     """
-    load_dotenv()
+    load_dotenv('.env')
     logger.info("Environment variables loaded.")
 
     # Parse the arguments

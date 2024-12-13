@@ -278,8 +278,20 @@ class Config(BaseModel):
     def to_yaml(self, path: str) -> None:
         logger.debug(f"Saving configuration to YAML file: {path}")
         try:
-            OmegaConf.save(self.dict(), path)
+            OmegaConf.save(self.model_dump(), path)
             logger.info(f"Configuration saved successfully to {path}")
         except Exception as e:
             logger.error(f"Failed to save configuration to {path}: {e}")
             raise
+
+    def to_dict(self) -> dict:
+        """
+        ### Description
+            Convert the configuration to a dictionary.
+        ### Returns
+            config (dict): The configuration dictionary.
+        """
+        config = self.model_dump()
+        if not OmegaConf.is_config(config):
+            config = OmegaConf.create(config)
+        return OmegaConf.to_container(config)
