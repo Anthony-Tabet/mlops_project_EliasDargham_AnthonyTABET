@@ -1,0 +1,38 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+steps:
+  - name: Checkout Code
+    uses: actions/checkout@v4
+  
+  - name: Setup up Python
+    uses: actions/setup-python@v5
+    with:
+      python-version: '3.12'
+  
+  - name: Install Poetry
+    shell: bash
+    run: pipx install poetry
+  
+  - name: Install dependencies
+    run: poetry install
+  
+  - name: Run Tests
+    run: poetry run invoke test
+  
+  - name: Run Linting
+    run: poetry run invoke lint
+
+  - name: Run Type Checking
+    run: poetry run invoke typecheck
