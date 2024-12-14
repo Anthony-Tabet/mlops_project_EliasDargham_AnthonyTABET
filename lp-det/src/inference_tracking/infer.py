@@ -13,8 +13,7 @@ from ultralytics import YOLO
 from loguru import logger
 
 from inference_tracking.object_tracking.tracker import ObjectTracker
-from inference_tracking.object_tracking.utils import process_track
-from monitoring import inference_counter, inference_time, processed_frames, active_tracks, errors
+from .monitoring import inference_counter, inference_time, processed_frames, active_tracks, errors
 
 logger.add("tracking.log", rotation="10 MB")  # Log file setup
 
@@ -25,13 +24,15 @@ def run(
     forward_url_port: int
 ) -> None:
     """
-    Execute the object tracking process on a given video source.
-
-    Args:
+    ### Description
+        Execute the object tracking process on a given video source.
+    ### Parameters
         source (str): Path or URL to the video source.
         out_dir (str): Directory to save any outputs.
         forward_url (str): URL to send detected object data for processing.
         forward_url_port (int): Port number of the forward URL.
+    ### Returns
+        None
     """
     logger.debug(f"Attempting to open video source: {source}")
     cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
@@ -70,7 +71,7 @@ def run(
                     break
             processed_frames.inc()
             ret, frame = cap.read()
-    except:
+    except Exception as e:
         logger.error(f"Error processing video: {e}")
         errors.inc()  # Increment error counter on exceptions
 
@@ -80,7 +81,12 @@ def run(
 
 def main() -> None:
     """
-    Parse arguments and run the object tracking process.
+    ### Description
+        Parse arguments and run the object tracking process.
+    ### Parameters
+        None
+    ### Returns
+        None
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', type=str, default='./data/Test.mp4', help='source')
