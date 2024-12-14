@@ -13,7 +13,11 @@ logger.add("track_extension.log", rotation="10 MB")  # Log file setup
 
 class TrackExtended(Track):
     """
-    Extends the Track class to include additional attributes or methods.
+    ### Description
+        Extends the Track class to include additional attributes or methods.
+    ### Attributes
+        class_id (str): Optional class ID for the track, used for additional classification.
+        speed (float): Optional track speed if needed.
     """
 
     def __init__(

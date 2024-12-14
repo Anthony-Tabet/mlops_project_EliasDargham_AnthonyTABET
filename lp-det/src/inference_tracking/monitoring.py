@@ -1,4 +1,12 @@
+# src/inference_tracking/monitoring.py
+"""
+monitoring.py
+Author: Anthony Tabet (Anthony-Tabet)
+Date: 2024-12-09
+Description: Prometheus monitoring setup for the inference tracking system.
+"""
 from prometheus_client import Counter, Histogram, Gauge, start_http_server
+
 
 # A counter to track the number of inferences
 inference_counter = Counter('inferences', 'Number of inference operations')

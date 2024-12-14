@@ -15,7 +15,6 @@ import mlflow
 import onnx
 import mlflow
 from ultralytics import YOLO
-
 from detector_training.config_loader import Config
 
 
@@ -35,6 +34,7 @@ def run(conf: Config) -> None:
     mlflow.set_experiment(conf.project.name)
     with mlflow.start_run():
         model = YOLO(model=f'{conf.training.model}{conf.training.size}.pt')
+
         model.model_name = conf.project.name
         logger.info("Model loaded and configured.")
 

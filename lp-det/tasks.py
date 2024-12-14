@@ -11,7 +11,7 @@ def format(c):
     c.run("poetry run ruff check . --fix")
 
 @task
-def type_check(c):
+def typecheck(c):
     """Run Mypy for type checking."""
     c.run("poetry run mypy src/")
 
@@ -26,6 +26,6 @@ def train(c):
     c.run("poetry run python src/detector_training/train.py --config config/config-dev.yaml")
 
 @task
-def generate_docs(c):
+def generatedocs(c):
     """Generate project documentation using pdoc."""
     c.run("poetry run pdoc --html --output-dir docs src")
