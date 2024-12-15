@@ -11,7 +11,7 @@ Welcome to our License Plate Detection project. This project uses machine learni
 
 ## System Requirements
 - Docker & Docker Compose
-- Python 3.8 or higher
+- Python 3.12 or higher
 - Poetry for Python dependency management
 
 ## Dataset
