@@ -7,7 +7,9 @@ Description: Runs inference and tracking on a video source.
 """
 
 import argparse
+
 import cv2
+import mlflow
 
 from ultralytics import YOLO
 from loguru import logger
@@ -42,7 +44,10 @@ def run(
         return
 
     logger.info("Initializing YOLO model.")
-    model = YOLO("yolov10x.pt")
+    # Load YOLO model from mlflow
+    model = mlflow.onnx.load_model("yolov10x.onnx")
+    # Load
+    # model = YOLO("yolov10x.pt")
     model.classes = [0, 1, 2, 3, 4, 5, 6, 7, 15, 16, 17]
     tracker = ObjectTracker(model, forward_url, forward_url_port, out_dir)
     try:

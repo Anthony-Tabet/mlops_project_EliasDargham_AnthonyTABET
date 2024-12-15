@@ -6,7 +6,7 @@ def lint(c):
     c.run("poetry run ruff check .")
 
 @task
-def format(c):
+def reformat(c):
     """Run Ruff to format the code."""
     c.run("poetry run ruff check . --fix")
 
