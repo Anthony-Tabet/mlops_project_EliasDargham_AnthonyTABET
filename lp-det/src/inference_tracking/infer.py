@@ -7,13 +7,12 @@ Description: Runs inference and tracking on a video source.
 """
 
 import argparse
-
+from dotenv import load_dotenv
 import cv2
 import mlflow
-
-from ultralytics import YOLO
+import numpy as np
 from loguru import logger
-
+import onnxruntime as ort
 from inference_tracking.object_tracking.tracker import ObjectTracker
 from .monitoring import inference_counter, inference_time, processed_frames, active_tracks, errors
 
@@ -36,30 +35,45 @@ def run(
     ### Returns
         None
     """
+    # Load YOLO model from mlflow
+    logger.info("Loading latest model.")
+    latest_model = 'models:/yolov10l/latest'
+    model_proto = mlflow.onnx.load_model(latest_model)
+    model_path = "temp_model.onnx"
+    with open(model_path, "wb") as f:
+        f.write(model_proto.SerializeToString())
+    session = ort.InferenceSession(model_path)
+    logger.info("Model loaded successfully.")
+
+    # use gpu for onnxruntime if available
+    if 'CUDAExecutionProvider' in session.get_providers():
+        session.set_providers(['CUDAExecutionProvider'])
+
     logger.debug(f"Attempting to open video source: {source}")
     cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
     if not cap.isOpened():
         logger.error("Failed to open video source")
         errors.inc()
         return
+    logger.info("Video source opened successfully.")
 
-    logger.info("Initializing YOLO model.")
-    # Load YOLO model from mlflow
-    model = mlflow.onnx.load_model("yolov10x.onnx")
-    # Load
-    # model = YOLO("yolov10x.pt")
-    model.classes = [0, 1, 2, 3, 4, 5, 6, 7, 15, 16, 17]
-    tracker = ObjectTracker(model, forward_url, forward_url_port, out_dir)
+    tracker = ObjectTracker(session, forward_url, forward_url_port, out_dir)
     try:
         ret, frame = cap.read()
+        input_name = session.get_inputs()[0].name
         while ret:
             with inference_time.time():
                 logger.debug("Processing a new frame.")
-                results = model(frame)
+                input_data = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                input_data = cv2.resize(input_data, (640, 640))
+                input_data = input_data.transpose(2, 0, 1)
+                input_data = np.expand_dims(input_data, axis=0).astype(np.float32)
+                results = session.run(None, {input_name: input_data})
                 inference_counter.inc()
                 boxes = []
-                for result in results:
-                    for r in result.boxes.data.tolist():
+                for result in results[0]:
+                    for r in result:
+                        print(r)
                         x1, y1, x2, y2, score, class_id = r
                         if score > 0.5:
                             boxes.append([[x1, y1, x2 - x1, y2 - y1], score, class_id])
@@ -93,8 +107,9 @@ def main() -> None:
     ### Returns
         None
     """
+    load_dotenv('.env')
     parser = argparse.ArgumentParser()
-    parser.add_argument('--source', type=str, default='./data/Test.mp4', help='source')
+    parser.add_argument('--source', type=str, help='source')
     parser.add_argument('--output', type=str, default='./output', help='output')
     parser.add_argument('--forward_url', type=str, default='http://127.0.0.1')
     parser.add_argument('--port', type=int, default=8080)

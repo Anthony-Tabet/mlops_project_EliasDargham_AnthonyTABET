@@ -21,6 +21,7 @@ loguru = "^0.7.3"
 prometheus-client = "^0.21.1"
 ultralytics = "^8.3.49"
 mlflow = "^2.19.0"
+onnxruntime-gpu = "^1.20.1"
 
 [tool.poetry.scripts]
 lp-det-train = "detector_training.train:main"

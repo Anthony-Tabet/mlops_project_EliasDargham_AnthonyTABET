@@ -65,7 +65,6 @@ def run(conf: Config) -> None:
         mlflow.log_params(conf.to_dict())
 
         # Log the results to mlflow
-        print(model.metrics.results_dict)
         new_results_dict = {
             key.replace('metrics/', '').replace('(B)', ''): value\
                 for key, value in model.metrics.results_dict.items()
