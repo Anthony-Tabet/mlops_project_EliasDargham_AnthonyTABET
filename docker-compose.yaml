@@ -59,7 +59,7 @@ services:
       - prometheus
   
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.18.0
+    image: ghcr.io/mlflow/mlflow:v2.19.0
     ports:
       - 5050:5000
     environment:

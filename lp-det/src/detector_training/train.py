@@ -12,8 +12,8 @@ from dotenv import load_dotenv
 from loguru import logger
 import onnx
 import mlflow
-import onnx
-import mlflow
+from ultralytics import settings
+import numpy as np
 from ultralytics import YOLO
 from detector_training.config_loader import Config
 
@@ -30,16 +30,20 @@ def run(conf: Config) -> None:
     ### Returns
         None
     """
+    logger.info("Turning off ultralytics MLflow logging. Will use global MLflow logging instead.")
+    settings.update({"mlflow": False})
+
     logger.info(f"Setting up MLflow experiment: {conf.project.name}")
     mlflow.set_experiment(conf.project.name)
     with mlflow.start_run():
         model = YOLO(model=f'{conf.training.model}{conf.training.size}.pt')
 
         model.model_name = conf.project.name
+
         logger.info("Model loaded and configured.")
 
         # Load the data from the path to train yolo
-        results = model.train(
+        model.train(
             data=conf.training.data.path,
             epochs=conf.training.epochs,
             imgsz=conf.training.data.imgsz,
@@ -56,13 +60,17 @@ def run(conf: Config) -> None:
         # session_name = session.info.run_name
         # print(f"MLflow session ID: {session_id}")
         # print(f'Sessoion Name: {session_name}')
-        
+
         # Log the configuration to mlflow
         mlflow.log_params(conf.to_dict())
-        
 
         # Log the results to mlflow
-        mlflow.log_metrics(results)
+        print(model.metrics.results_dict)
+        new_results_dict = {
+            key.replace('metrics/', '').replace('(B)', ''): value\
+                for key, value in model.metrics.results_dict.items()
+        }
+        mlflow.log_metrics(new_results_dict)
 
         logger.info(f"Exporting model in format: {conf.export_format}")
         onnx_model_path = model.export(format=conf.export_format, opset=20)
@@ -70,7 +78,9 @@ def run(conf: Config) -> None:
 
         # Save the model with mlflow
         onnx_model = onnx.load(onnx_model_path)
-        mlflow.onnx.log_model(onnx_model, artifact_path="model")
+        # input exaple
+        input_example = np.random.randn(1, 3, conf.training.data.imgsz, conf.training.data.imgsz)
+        mlflow.onnx.log_model(onnx_model, artifact_path="model", input_example=input_example)
         logger.info("Model registered in MLflow.")
 
 def main() -> None:
