@@ -10,6 +10,7 @@ services:
       - VIRTUAL_ENV=/opt/venv
       - PATH=/opt/venv/bin:$PATH
       - DEBIAN_FRONTEND=noninteractive
+      - DISPLAY=${DISPLAY}
     privileged: true
     deploy:
       resources:
@@ -20,11 +21,14 @@ services:
             capabilities: [gpu]
     #use gpu
     volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
       - .:/opt/app
+      - /home/edargham:/host-in
     ports:
       - "8000:8000"
     networks:
       - app-network
+    command: ["--source", "/host-in/Test.mp4"]
 
   prometheus:
     image: prom/prometheus

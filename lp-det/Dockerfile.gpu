@@ -19,10 +19,10 @@ RUN pip install --no-cache-dir pipx poetry
 
 # Set the working directory
 RUN mkdir /opt/app
-WORKDIR /opt/app
 
 # Copy the current directory contents into the container at /opt/app
 COPY . /opt/app
+WORKDIR /opt/app/lp-det
 
 RUN poetry lock --no-update
 RUN poetry install --no-root
