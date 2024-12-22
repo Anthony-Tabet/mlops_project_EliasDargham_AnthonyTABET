@@ -1,8 +1,4 @@
 services:
-  # lp-det:
-  #   image: ./dreamteam/lp-det:test
-  #   # command: poetry shell && lp-det-train
-  
   app:
     build:
       dockerfile: ./lp-det/Dockerfile.gpu
@@ -18,7 +14,9 @@ services:
           devices:
           - driver: nvidia
             count: 1
-            capabilities: [gpu]
+            capabilities:
+              - gpu
+    runtime: nvidia
     #use gpu
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
@@ -28,7 +26,7 @@ services:
       - "8000:8000"
     networks:
       - app-network
-    command: ["--source", "/host-in/Test.mp4"]
+    command: ["poetry shell && lp-det-infer", "--source", "/host-in/Test.mp4"]
 
   prometheus:
     image: prom/prometheus
