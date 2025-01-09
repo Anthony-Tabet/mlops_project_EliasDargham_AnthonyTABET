@@ -1,0 +1,7 @@
+{
+  "python.testing.pytestArgs": [
+    "lp-det"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
+}

@@ -1,0 +1,31 @@
+project:
+  name: 'lp-det'
+training:
+  # The YOLO model to use for training.
+  model: 'yolov10'
+  # Size can only be set it to either:
+  # 'n' - nano.
+  # 's' - small.
+  # 'm' - medium.
+  # 'l' - large.
+  # 'x' - extra large.
+  size: 'l'
+  data:
+    path: '/home/edargham/Sources/ai-devenv/swe-finalproject/swe-lpd/lp-det/lpd-data/data.yaml'
+    bsz: 24
+    imgsz: 640
+  device: 'cuda'
+  epochs: 1
+  workers: 16
+  lr:
+    rate: 1e-2
+    optimizer: 'adam'
+    gamma: 0.999
+validation:
+  data:
+    path: '/home/edargham/Sources/ai-devenv/swe-finalproject/swe-lpd/lp-det/lpd-data/data.yaml'
+    bsz: 24
+    imgsz: 640
+  device: 'cuda'
+  workers: 8
+export_format: 'onnx'
