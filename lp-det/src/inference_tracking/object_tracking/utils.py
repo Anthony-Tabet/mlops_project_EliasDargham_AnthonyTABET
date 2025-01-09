@@ -1,9 +1,9 @@
-# src/swe/object_tracking/utils.py
+# src/inference_tracking/utils.py
 """
 utils.py
 Author: Anthony Tabet (Anthony-Tabet)
-Date:
-Description:
+Date: 2024-12-06
+Description: Utility functions for the object tracking pipeline.
 """
 
 import base64
@@ -16,25 +16,33 @@ import cv2
 import numpy as np
 from ultralytics import YOLO
 from loguru import logger
+
 from deep_sort_realtime.deep_sort.track import Track
 from deep_sort_realtime.deepsort_tracker import DeepSort
 
 
 logger.add("tracking_process.log", rotation="10 MB")  # Log file setup
 
-def process_track(track: Track, frame: cv2.Mat, out_dir: str, forward_url: str, forward_url_port: int, forward_url_path: str = "/") -> None:
+def process_track(
+    track: Track,
+    frame: np.ndarray,
+    out_dir: str,
+    forward_url: str,
+    forward_url_port: int,
+    forward_url_path: str="/"
+) -> None:
     """
-    Process each track by cropping from the frame, encoding it, sending it to a server, and saving the response.
-
-    Args:
+    ### Description
+        Process each track by cropping from the frame, encoding it, sending it to a server, 
+        and saving the response.
+    ### Parameters
         track (Track): The track information containing the bounding box.
-        frame (cv2.Mat): The frame from which to crop the tracked object.
+        frame (numpy.ndarray): The frame from which to crop the tracked object.
         out_dir (str): Directory where the outputs are stored.
         forward_url (str): The URL to forward the cropped image.
         forward_url_port (int): The port number for the URL.
         forward_url_path (str): The path at the URL to send the post request.
-
-    Returns:
+    ### Returns
         None
     """
     x, y, w, h = track.to_tlwh()
@@ -43,14 +51,14 @@ def process_track(track: Track, frame: cv2.Mat, out_dir: str, forward_url: str, 
         if crop.shape[0] == 0 or crop.shape[1] == 0:
             logger.warning(f"Empty bounding box for track {track.track_id}. Skipping...")
             return
-
+        
         _, encoded_image = cv2.imencode('.jpg', crop)
         crop_base64 = base64.b64encode(encoded_image).decode()
 
         try:
             endpoint_url = f'{forward_url}:{forward_url_port}{forward_url_path}'
             payload = {'image': crop_base64}
-            response = requests.post(endpoint_url, json=payload)
+            response = requests.post(endpoint_url, json=payload, timeout=300)
             logger.debug(f"Request sent to {endpoint_url}. Status code: {response.status_code}")
 
             if response.status_code == 200:
@@ -75,32 +83,46 @@ def process_track(track: Track, frame: cv2.Mat, out_dir: str, forward_url: str, 
                 for line in wrapped_text:
                     y += line_height + 10
 
-                crop = cv2.putText(crop, caption, (10, y), font, font_scale, color, thickness, cv2.LINE_AA)
+                crop = cv2.putText(
+                    crop,
+                    caption,
+                    (10, y),
+                    font,
+                    font_scale,
+                    color,
+                    thickness,
+                    cv2.LINE_AA
+                )
                 cv2.imshow('Image', crop)
 
                 caption_path = os.path.join(out_dir, uuid_str, 'caption.txt')
                 with open(caption_path, 'w', encoding='utf8') as f:
                     f.write(caption)
                 logger.info(f"Caption saved to {caption_path}")
-
             else:
                 logger.error(f"Received non-200 response: {response.status_code}")
-
-        except Exception as e:
+        except requests.exceptions.RequestException as e:
             logger.error(f"Failed to send image: {e}")
 
     else:
         logger.warning(f"Invalid frame or empty bounding box for track {track.track_id}")
 
-def run_object_tracking(input_video: str, output_dir: str, forward_url: str, forward_url_port: int) -> None:
+def run_object_tracking(
+    input_video: str,
+    output_dir: str,
+    forward_url: str,
+    forward_url_port: int
+) -> None:
     """
-    Run the object tracking pipeline using YOLOv5 and DeepSort on a video input.
-
-    Args:
+    ### Description
+        Run the object tracking pipeline using YOLOv5 and DeepSort on a video input.
+    ### Parameters
         input_video (str): Path to the input video file.
         output_dir (str): Directory to save cropped images and captions.
         forward_url (str): URL to send cropped object images for further processing.
         forward_url_port (int): Port for the forward URL.
+    ### Returns
+        None
     """
     logger.info("Initializing YOLOv5 model.")
     # Initialize the YOLOv5 model
@@ -179,12 +201,37 @@ def run_object_tracking(input_video: str, output_dir: str, forward_url: str, for
     logger.info("Object tracking finished.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run object tracking pipeline using YOLOv5 and DeepSORT.")
-    parser.add_argument('--input_video', type=str, required=True, help="Path to the input video file.")
-    parser.add_argument('--output_dir', type=str, required=True, help="Directory to save cropped images and captions.")
-    parser.add_argument('--forward_url', type=str, required=True,
-                        help="URL to send cropped object images for further processing.")
-    parser.add_argument('--forward_url_port', type=int, required=True, help="Port for the forward URL.")
+    parser = argparse.ArgumentParser(
+        description="Run object tracking pipeline using YOLOv5 and DeepSORT."
+    )
+
+    parser.add_argument(
+        '--input_video',
+        type=str,
+        required=True,
+        help="Path to the input video file."
+    )
+
+    parser.add_argument(
+        '--output_dir',
+        type=str,
+        required=True,
+        help="Directory to save cropped images and captions."
+    )
+
+    parser.add_argument(
+        '--forward_url',
+        type=str,
+        required=True,
+        help="URL to send cropped object images for further processing."
+    )
+
+    parser.add_argument(
+        '--forward_url_port',
+        type=int,
+        required=True,
+        help="Port for the forward URL."
+    )
 
     args = parser.parse_args()
 

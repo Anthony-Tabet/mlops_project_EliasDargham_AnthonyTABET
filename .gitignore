@@ -9,3 +9,6 @@ runs
 *.onnx
 *.db
 .venv
+.mypy_cache
+*.log
+.ruff_cache
