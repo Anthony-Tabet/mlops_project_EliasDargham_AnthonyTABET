@@ -7,6 +7,11 @@ Date: 2024-12-01
 Description: Configuration file for the License Plate Detection model.
 """
 
+from loguru import logger
+
+# Setup Loguru logger
+logger.add("license_plate_detection.log", rotation="10 MB")   # Each log file is limited to 10 MB
+
 import os
 from typing import Literal
 
@@ -410,7 +415,7 @@ class ProjectConfiguration(BaseModel):
             raise ValueError(f'Value "{v}" is not a string.')
         logger.info(f"Project name validated successfully: {v}")
         return v
-
+    
 class Config(BaseModel):
     """
     ### Description

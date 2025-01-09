@@ -48,7 +48,7 @@ def run(
     # use gpu for onnxruntime if available
     if 'CUDAExecutionProvider' in session.get_providers():
         session.set_providers(['CUDAExecutionProvider'])
-
+ 
     logger.debug(f"Attempting to open video source: {source}")
     cap = cv2.VideoCapture(source, cv2.CAP_FFMPEG)
     if not cap.isOpened():

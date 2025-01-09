@@ -14,6 +14,7 @@ from deep_sort_realtime.deepsort_tracker import DeepSort
 from deep_sort_realtime.deep_sort.track import Track
 from inference_tracking.realtime_tracking.overrides import TrackExtended
 
+logger.add("object_tracking.log", rotation="10 MB")   # Each log file is limited to 10 MB
 
 logger.add("object_tracking.log", rotation="10 MB")   # Each log file is limited to 10 MB
 

@@ -10,6 +10,8 @@ Description: Main file for the training pipeline of the License Plate Detection 
 import argparse
 from dotenv import load_dotenv
 from loguru import logger
+from ultralytics import YOLO
+
 import onnx
 import mlflow
 from ultralytics import settings

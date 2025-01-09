@@ -80,7 +80,7 @@ def process_track(
                 color = (255, 0, 0)
                 (_, line_height), _ = cv2.getTextSize('A', font, font_scale, thickness)
 
-                for _ in wrapped_text:
+                for line in wrapped_text:
                     y += line_height + 10
 
                 crop = cv2.putText(
