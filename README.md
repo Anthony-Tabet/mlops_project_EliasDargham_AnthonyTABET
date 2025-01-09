@@ -17,7 +17,7 @@ Welcome to our License Plate Detection project. This project uses machine learni
 ## Dataset
 This project uses a publicly available dataset which can be found at the following link:
 [License Plate Dataset](https://universe.roboflow.com/roboflow-universe-projects/license-plate-recognition-rxg4e/dataset/4)
-Please ensure you comply with the dataset's usage policy before utilizing it for training or testing.
+Please ensure you comply with the dataset's usage policy before utilizing it for training or testing and export as YoloV8 dataset.
 
 ## Setup Instructions
 
